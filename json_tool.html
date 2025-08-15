@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>在线工具集 - JSON解析美化</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', 'Arial', sans-serif;
+            background: #f4f6fa;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 10px auto;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            padding: 10px 24px 24px 24px;
+        }
+        h1 {
+            text-align: center;
+            color: #2d3a4b;
+            margin-bottom: 24px;
+        }
+        textarea {
+            width: 100%;
+            height: 400px;
+            font-size: 16px;
+            padding: 12px;
+            border: 1px solid #d0d7de;
+            border-radius: 6px;
+            resize: vertical;
+            margin-bottom: 16px;
+            font-family: 'Fira Mono', 'Consolas', monospace;
+            box-sizing: border-box;
+            
+        }
+        button {
+            background: #2563eb;
+            color: #fff;
+            border: none;
+            padding: 10px 28px;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-bottom: 16px;
+            transition: background 0.2s;
+        }
+        button:hover {
+            background: #1749b1;
+        }
+        .output {
+            background: #1e293b;
+            color: #fff;
+            border-radius: 6px;
+            padding: 18px;
+            font-size: 15px;
+            font-family: 'Fira Mono', 'Consolas', monospace;
+            overflow-x: auto;
+            min-height: 80px;
+        }
+        .error {
+            color: #e11d48;
+            margin-bottom: 12px;
+        }
+        .json-node {
+            white-space: pre;
+            line-height: 1.7;
+        }
+        .json-key { color: #f472b6; }
+        .json-string { color: #a3e635; }
+        .json-number { color: #38bdf8; }
+        .json-boolean { color: #fbbf24; }
+        .json-null { color: #f472b6; }
+        .toggle {
+            cursor: pointer;
+            color: #38bdf8;
+            user-select: none;
+            margin-right: 4px;
+            font-weight: bold;
+        }
+        .toggle:hover {
+            color: #a3e635;
+        }
+        .collapsed > .children {
+            display: none;
+        }
+        .children {
+            margin-left: 1.5em;
+            border-left: 1px dotted #334155;
+            padding-left: 0.5em;
+        }
+        .flex-row {
+            display: flex;
+            gap: 24px;
+        }
+        .left-panel, .right-panel {
+            flex: 1 1 0;
+            display: flex;
+            flex-direction: column;
+        }
+        .left-panel {
+            max-width: 420px;
+            overflow: hidden;
+        }
+        .right-panel {
+            min-width: 0;
+            max-width: 100%;
+        }
+        @media (max-width: 900px) {
+            .flex-row {
+                flex-direction: column;
+            }
+            .left-panel {
+                max-width: 100%;
+            }
+        }
+        .output {
+            min-height: 500px;
+            max-height: 700px;
+            overflow-y: auto;
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>JSON 解析美化工具</h1>
+        <div class="flex-row">
+            <div class="left-panel">
+                <textarea id="json-input" placeholder="在此粘贴或输入 JSON 数据..."></textarea>
+                <button onclick="formatJSON()">解析并美化</button>
+                <div id="error" class="error"></div>
+            </div>
+            <div class="right-panel">
+                <div id="output" class="output"></div>
+            </div>
+        </div>
+    </div>
+    <script>
+    function createNode(key, value, isLast) {
+        const type = typeof value;
+        let node = document.createElement('div');
+        node.className = 'json-node';
+        if (Array.isArray(value)) {
+            // 头部
+            const toggle = document.createElement('span');
+            toggle.className = 'toggle';
+            toggle.textContent = '[-]';
+            const keySpan = document.createElement('span');
+            keySpan.className = 'json-key';
+            keySpan.textContent = key !== null ? '"' + key + '"' : '';
+            node.appendChild(toggle);
+            node.appendChild(keySpan);
+            if (key !== null) node.appendChild(document.createTextNode(': '));
+            node.appendChild(document.createTextNode('['));
+            // 子节点
+            let children = document.createElement('div');
+            children.className = 'children';
+            value.forEach((v, i) => {
+                children.appendChild(createNode(null, v, i === value.length - 1));
+            });
+            node.appendChild(children);
+            // 结尾
+            const endSpan = document.createElement('span');
+            endSpan.textContent = ']' + (isLast ? '' : ',');
+            node.appendChild(endSpan);
+            node.classList.add('collapsible');
+            // 事件
+            toggle.onclick = function(e) {
+                e.stopPropagation();
+                node.classList.toggle('collapsed');
+                this.textContent = node.classList.contains('collapsed') ? '[+]' : '[-]';
+            };
+        } else if (type === 'object' && value !== null) {
+            // 头部
+            const toggle = document.createElement('span');
+            toggle.className = 'toggle';
+            toggle.textContent = '[-]';
+            const keySpan = document.createElement('span');
+            keySpan.className = 'json-key';
+            keySpan.textContent = key !== null ? '"' + key + '"' : '';
+            node.appendChild(toggle);
+            node.appendChild(keySpan);
+            if (key !== null) node.appendChild(document.createTextNode(': '));
+            node.appendChild(document.createTextNode('{'));
+            // 子节点
+            let children = document.createElement('div');
+            children.className = 'children';
+            const keys = Object.keys(value);
+            keys.forEach((k, i) => {
+                children.appendChild(createNode(k, value[k], i === keys.length - 1));
+            });
+            node.appendChild(children);
+            // 结尾
+            const endSpan = document.createElement('span');
+            endSpan.textContent = '}' + (isLast ? '' : ',');
+            node.appendChild(endSpan);
+            node.classList.add('collapsible');
+            // 事件
+            toggle.onclick = function(e) {
+                e.stopPropagation();
+                node.classList.toggle('collapsed');
+                this.textContent = node.classList.contains('collapsed') ? '[+]' : '[-]';
+            };
+        } else {
+            let valSpan = '';
+            if (type === 'string') {
+                valSpan = `<span class="json-string">"${value}"</span>`;
+            } else if (type === 'number') {
+                valSpan = `<span class="json-number">${value}</span>`;
+            } else if (type === 'boolean') {
+                valSpan = `<span class="json-boolean">${value}</span>`;
+            } else if (value === null) {
+                valSpan = `<span class="json-null">null</span>`;
+            }
+            node.innerHTML = `${key !== null ? '<span class="json-key">"' + key + '"</span>: ' : ''}${valSpan}${isLast ? '' : ','}`;
+        }
+        return node;
+    }
+
+    function renderJSONTree(obj) {
+        const root = document.createElement('div');
+        root.className = 'json-root';
+        root.appendChild(createNode(null, obj, true));
+        return root;
+    }
+
+    function formatJSON() {
+        const input = document.getElementById('json-input').value.trim();
+        const output = document.getElementById('output');
+        const errorDiv = document.getElementById('error');
+        errorDiv.textContent = '';
+        output.innerHTML = '';
+        if (!input) {
+            errorDiv.textContent = '请输入 JSON 数据';
+            return;
+        }
+        try {
+            const obj = JSON.parse(input);
+            output.innerHTML = '';
+            output.appendChild(renderJSONTree(obj));
+        } catch (e) {
+            errorDiv.textContent = 'JSON 解析错误: ' + e.message;
+        }
+    }
+    </script>
+</body>
+</html> 
