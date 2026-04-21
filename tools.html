@@ -274,6 +274,13 @@ mark.hit{background:rgba(212,175,55,.35);color:var(--gold-2);border-radius:3px;p
         <div class="nav-item" data-tool="color"><span class="ico">●</span><span>颜色转换</span></div>
       </div>
     </div>
+
+    <div class="group">
+      <div class="group-t">网络工具</div>
+      <div class="nav">
+        <div class="nav-item" data-tool="ip"><span class="ico">IP</span><span>IP 归属地查询</span></div>
+      </div>
+    </div>
   </aside>
 
   <!-- ============ Main ============ -->
@@ -478,6 +485,46 @@ mark.hit{background:rgba(212,175,55,.35);color:var(--gold-2);border-radius:3px;p
       </div>
     </section>
 
+    <!-- IP Lookup -->
+    <section class="panel" data-panel="ip">
+      <div class="top">
+        <div class="title"><h1>IP 归属地查询</h1><p>查询 IPv4 / IPv6 的地理位置、ISP、时区等信息。多数据源自动切换（百度 qifu / CSDN / ipapi.co）。</p></div>
+        <div class="top-r"><span class="chip"><span class="dot"></span>公网 API · 请求实时发送</span></div>
+      </div>
+      <div class="card">
+        <div class="field">
+          <div class="label"><span>IP 地址</span><span class="hint">留空可查询本机公网 IP · 支持域名</span></div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <input type="text" id="ipIn" class="mono" placeholder="例如 8.8.8.8 / 2001:4860:4860::8888 / github.com" style="flex:1;min-width:240px" />
+            <button class="btn primary" onclick="ipQuery()">查询</button>
+            <button class="btn" onclick="ipQueryMe()">查询本机 IP</button>
+          </div>
+        </div>
+
+        <div id="ipResult" style="margin-top:18px;display:none">
+          <div class="stat-row">
+            <div class="stat"><div class="stat-l">IP</div><div class="stat-v" id="ipVal" style="font-size:12.5px">—</div></div>
+            <div class="stat"><div class="stat-l">类型</div><div class="stat-v" id="ipType">—</div></div>
+            <div class="stat"><div class="stat-l">国家/地区</div><div class="stat-v" id="ipCountry" style="font-size:12.5px">—</div></div>
+            <div class="stat"><div class="stat-l">时区</div><div class="stat-v" id="ipTz" style="font-size:12px">—</div></div>
+          </div>
+          <div style="margin-top:14px">
+            <div class="kv"><div class="kv-k">大洲</div><div class="kv-v" id="ipCont">—</div></div>
+            <div class="kv"><div class="kv-k">省/州</div><div class="kv-v" id="ipRegion">—</div></div>
+            <div class="kv"><div class="kv-k">城市</div><div class="kv-v" id="ipCity">—</div></div>
+            <div class="kv"><div class="kv-k">邮编</div><div class="kv-v" id="ipPostal">—</div></div>
+            <div class="kv"><div class="kv-k">经纬度</div><div class="kv-v" id="ipLatLng">—</div></div>
+            <div class="kv"><div class="kv-k">ISP</div><div class="kv-v" id="ipIsp">—</div></div>
+            <div class="kv"><div class="kv-k">组织</div><div class="kv-v" id="ipOrg">—</div></div>
+            <div class="kv"><div class="kv-k">ASN</div><div class="kv-v" id="ipAsn">—</div></div>
+            <div class="kv"><div class="kv-k">地图</div><div class="kv-v"><a id="ipMap" href="#" target="_blank" rel="noopener" style="color:var(--cyan);text-decoration:none">在 OpenStreetMap 中查看 ↗</a></div></div>
+          </div>
+        </div>
+
+        <div class="msg" id="ipMsg"></div>
+      </div>
+    </section>
+
     <!-- Color -->
     <section class="panel" data-panel="color">
       <div class="top"><div class="title"><h1>颜色转换</h1><p>HEX / RGB / HSL 互转，实时预览。</p></div></div>
@@ -541,7 +588,7 @@ function copyOut(id){
 }
 function toast(msg,type='ok'){
   const pid=document.querySelector('.panel.active')?.dataset.panel;
-  const map={json:'jsonMsg',base64:'b64Msg',url:'urlMsg',jwt:'jwtMsg',timestamp:'tsMsg',regex:'reMsg',color:'cMsg'};
+  const map={json:'jsonMsg',base64:'b64Msg',url:'urlMsg',jwt:'jwtMsg',timestamp:'tsMsg',regex:'reMsg',color:'cMsg',ip:'ipMsg'};
   const el=document.getElementById(map[pid]);
   if(!el)return;
   el.textContent=msg;el.className='msg '+type;
@@ -756,6 +803,76 @@ document.getElementById('cHex').addEventListener('input',e=>{const v=e.target.va
 document.getElementById('cRgb').addEventListener('input',e=>{const m=e.target.value.match(/(\d+)[,\s]+(\d+)[,\s]+(\d+)/);if(m)updateColor('rgb',{r:+m[1],g:+m[2],b:+m[3]})});
 document.getElementById('cHsl').addEventListener('input',e=>{const m=e.target.value.match(/(\d+)[,\s]+(\d+)%?[,\s]+(\d+)%?/);if(m)updateColor('hsl',hslToRgb(+m[1],+m[2],+m[3]))});
 document.getElementById('cPick').addEventListener('input',e=>updateColor('hex',hexToRgb(e.target.value)));
+
+/* ---------- IP Lookup ---------- */
+function codeToFlag(cc){if(!cc||cc.length!==2)return '';return cc.toUpperCase().replace(/./g,c=>String.fromCodePoint(127397+c.charCodeAt()))}
+
+async function ipFromIpapi(q){
+  const url=q?`https://ipapi.co/${encodeURIComponent(q)}/json/`:`https://ipapi.co/json/`;
+  const r=await fetch(url);
+  const d=await r.json();
+  if(d.error)throw new Error(d.reason||'查询失败');
+  return {
+    ip:d.ip,
+    type:d.version||(d.ip&&d.ip.includes(':')?'IPv6':'IPv4'),
+    country:d.country_name,country_code:d.country_code,
+    continent:d.continent_code,
+    region:d.region,city:d.city,postal:d.postal,
+    latitude:d.latitude,longitude:d.longitude,
+    tz:d.timezone,tz_offset:d.utc_offset,
+    isp:d.org,org:d.org,asn:d.asn,asn_domain:'',
+    source:'ipapi.co'
+  };
+}
+async function ipFromFreeipapi(q){
+  const url=q?`https://freeipapi.com/api/json/${encodeURIComponent(q)}`:`https://freeipapi.com/api/json/`;
+  const r=await fetch(url);
+  const d=await r.json();
+  if(!d.ipAddress)throw new Error(d.message||'查询失败');
+  return {
+    ip:d.ipAddress,
+    type:d.ipVersion?('IPv'+d.ipVersion):'—',
+    country:d.countryName,country_code:d.countryCode,
+    continent:d.continent,
+    region:d.regionName,city:d.cityName,postal:d.zipCode,
+    latitude:d.latitude,longitude:d.longitude,
+    tz:null,tz_offset:d.timeZone,
+    isp:null,org:null,asn:null,asn_domain:'',
+    source:'freeipapi.com'
+  };
+}
+
+async function ipLookup(q){
+  const msg=document.getElementById('ipMsg');
+  msg.textContent='查询中...';msg.className='msg';
+  let d=null,errs=[];
+  for(const fn of [ipFromIpapi,ipFromFreeipapi]){
+    try{d=await fn(q);break}catch(e){errs.push(`${fn.name}: ${e.message}`)}
+  }
+  if(!d){setErr('ipMsg','查询失败 — '+errs.join(' | '));return}
+  document.getElementById('ipResult').style.display='';
+  document.getElementById('ipVal').textContent=d.ip||'—';
+  document.getElementById('ipType').textContent=d.type||'—';
+  const flag=codeToFlag(d.country_code);
+  document.getElementById('ipCountry').textContent=(flag?flag+' ':'')+(d.country||'—')+(d.country_code?` (${d.country_code})`:'');
+  document.getElementById('ipTz').textContent=[d.tz,d.tz_offset].filter(Boolean).join(' ')||'—';
+  document.getElementById('ipCont').textContent=d.continent||'—';
+  document.getElementById('ipRegion').textContent=d.region||'—';
+  document.getElementById('ipCity').textContent=d.city||'—';
+  document.getElementById('ipPostal').textContent=d.postal||'—';
+  const lat=d.latitude,lng=d.longitude;
+  document.getElementById('ipLatLng').textContent=(lat!=null&&lng!=null)?`${lat}, ${lng}`:'—';
+  document.getElementById('ipIsp').textContent=d.isp||'—';
+  document.getElementById('ipOrg').textContent=d.org||'—';
+  document.getElementById('ipAsn').textContent=d.asn?`${d.asn} ${d.asn_domain||''}`.trim():'—';
+  const mapEl=document.getElementById('ipMap');
+  if(lat!=null&&lng!=null){mapEl.href=`https://www.openstreetmap.org/?mlat=${lat}&mlon=${lng}&zoom=10`;mapEl.style.display=''}
+  else{mapEl.style.display='none'}
+  setOk('ipMsg',`查询成功 · 数据源 ${d.source}`);
+}
+function ipQuery(){const v=document.getElementById('ipIn').value.trim();ipLookup(v)}
+function ipQueryMe(){document.getElementById('ipIn').value='';ipLookup('')}
+document.getElementById('ipIn').addEventListener('keydown',e=>{if(e.key==='Enter')ipQuery()});
 
 /* default UUID on open */
 uuidGen();
