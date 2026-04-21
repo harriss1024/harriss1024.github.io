@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover" />
+<meta name="theme-color" content="#0a0e1a" />
+<title>AI Oracle · 全球指数智能预测</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#0a0e1a;
+  --bg-2:#0f1424;
+  --card:rgba(255,255,255,.04);
+  --card-br:rgba(255,255,255,.08);
+  --text:#e8ecf5;
+  --text-dim:#8a93a8;
+  --gold:#d4af37;
+  --gold-2:#f4d97a;
+  --up:#2ee6a6;
+  --down:#ff5f7a;
+  --cyan:#5ad6ff;
+  --purple:#a78bff;
+}
+html,body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","PingFang SC","Helvetica Neue",Arial,sans-serif;font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
+body{
+  min-height:100vh;
+  background:
+    radial-gradient(1200px 600px at 80% -10%,rgba(212,175,55,.10),transparent 60%),
+    radial-gradient(900px 500px at -10% 20%,rgba(90,214,255,.08),transparent 60%),
+    radial-gradient(800px 600px at 50% 100%,rgba(167,139,255,.07),transparent 60%),
+    linear-gradient(180deg,#0a0e1a 0%,#070a14 100%);
+  padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+.wrap{max-width:480px;margin:0 auto;padding:20px 18px 48px}
+
+/* Header */
+.header{display:flex;align-items:center;justify-content:space-between;padding:8px 2px 22px}
+.brand{display:flex;align-items:center;gap:10px}
+.logo{
+  width:34px;height:34px;border-radius:10px;
+  background:linear-gradient(135deg,#d4af37 0%,#f4d97a 50%,#8a6e1e 100%);
+  display:grid;place-items:center;
+  box-shadow:0 6px 20px rgba(212,175,55,.35),inset 0 1px 0 rgba(255,255,255,.4);
+  position:relative;overflow:hidden;
+}
+.logo::after{content:"";position:absolute;inset:0;background:radial-gradient(circle at 30% 20%,rgba(255,255,255,.6),transparent 40%)}
+.logo svg{position:relative;z-index:1}
+.brand-name{font-size:16px;font-weight:600;letter-spacing:.5px}
+.brand-name span{background:linear-gradient(90deg,#f4d97a,#d4af37);-webkit-background-clip:text;background-clip:text;color:transparent}
+.brand-sub{font-size:10px;color:var(--text-dim);letter-spacing:2px;text-transform:uppercase;margin-top:1px}
+.live{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text-dim);padding:6px 10px;border:1px solid var(--card-br);border-radius:100px;background:var(--card)}
+.live-dot{width:6px;height:6px;border-radius:50%;background:var(--up);box-shadow:0 0 10px var(--up);animation:pulse 1.6s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+/* Hero */
+.hero{
+  position:relative;border-radius:22px;overflow:hidden;
+  background:linear-gradient(160deg,rgba(212,175,55,.12) 0%,rgba(90,214,255,.06) 50%,rgba(167,139,255,.10) 100%);
+  border:1px solid var(--card-br);
+  padding:22px 20px 20px;
+  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+}
+.hero::before{
+  content:"";position:absolute;inset:0;pointer-events:none;
+  background:
+    radial-gradient(400px 200px at 90% 0%,rgba(212,175,55,.25),transparent 60%),
+    radial-gradient(300px 200px at 0% 100%,rgba(90,214,255,.15),transparent 60%);
+}
+.hero-title{position:relative;font-size:22px;font-weight:700;letter-spacing:.3px;line-height:1.3}
+.hero-title em{font-style:normal;background:linear-gradient(90deg,#f4d97a,#d4af37 50%,#e8c972);-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero-desc{position:relative;font-size:12px;color:var(--text-dim);margin-top:8px;line-height:1.6}
+.hero-stats{position:relative;display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:18px}
+.hero-stat{background:rgba(0,0,0,.25);border:1px solid var(--card-br);border-radius:12px;padding:10px 8px;text-align:center}
+.hero-stat-val{font-size:15px;font-weight:600;color:var(--gold-2)}
+.hero-stat-lbl{font-size:10px;color:var(--text-dim);margin-top:2px;letter-spacing:.5px}
+
+/* Section title */
+.sec-title{display:flex;align-items:center;justify-content:space-between;margin:28px 4px 12px}
+.sec-title h2{font-size:13px;font-weight:600;letter-spacing:1.2px;text-transform:uppercase;color:var(--text)}
+.sec-title h2::before{content:"";display:inline-block;width:3px;height:12px;background:linear-gradient(180deg,#f4d97a,#d4af37);border-radius:2px;margin-right:8px;vertical-align:-1px}
+.sec-title .more{font-size:11px;color:var(--text-dim)}
+
+/* Index tabs */
+.tabs{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 8px;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{
+  flex:0 0 auto;padding:10px 14px;border-radius:12px;
+  background:var(--card);border:1px solid var(--card-br);
+  font-size:12px;color:var(--text-dim);white-space:nowrap;
+  transition:all .25s ease;cursor:pointer;
+}
+.tab .tab-name{font-weight:600;color:var(--text);font-size:12px}
+.tab .tab-price{font-size:10px;margin-top:2px;color:var(--text-dim)}
+.tab.active{
+  background:linear-gradient(135deg,rgba(212,175,55,.2),rgba(212,175,55,.08));
+  border-color:rgba(212,175,55,.5);
+  box-shadow:0 4px 16px rgba(212,175,55,.15);
+}
+.tab.active .tab-name{color:var(--gold-2)}
+
+/* Consensus card */
+.consensus{
+  margin-top:14px;
+  border-radius:20px;
+  background:linear-gradient(160deg,rgba(255,255,255,.05),rgba(255,255,255,.02));
+  border:1px solid var(--card-br);
+  padding:18px 18px 16px;
+  position:relative;overflow:hidden;
+}
+.consensus::before{content:"";position:absolute;top:0;right:0;width:200px;height:200px;background:radial-gradient(circle,rgba(212,175,55,.12),transparent 60%);pointer-events:none}
+.con-head{display:flex;justify-content:space-between;align-items:flex-start;position:relative}
+.con-name{font-size:18px;font-weight:700;letter-spacing:.3px}
+.con-code{font-size:11px;color:var(--text-dim);margin-top:2px;letter-spacing:1px}
+.con-price{text-align:right}
+.con-price-val{font-size:20px;font-weight:700;font-variant-numeric:tabular-nums}
+.con-price-chg{font-size:12px;margin-top:2px;font-variant-numeric:tabular-nums}
+.up{color:var(--up)}.down{color:var(--down)}
+.con-target{margin-top:18px;display:flex;align-items:center;gap:14px;position:relative}
+.target-ring{
+  width:76px;height:76px;border-radius:50%;flex-shrink:0;position:relative;
+  background:conic-gradient(var(--gold) var(--p,72%),rgba(255,255,255,.06) 0);
+  display:grid;place-items:center;
+}
+.target-ring::before{content:"";position:absolute;inset:5px;border-radius:50%;background:#0b1020;border:1px solid var(--card-br)}
+.target-ring-inner{position:relative;text-align:center}
+.target-ring-inner b{font-size:16px;color:var(--gold-2);display:block;font-weight:700}
+.target-ring-inner span{font-size:9px;color:var(--text-dim);letter-spacing:.5px}
+.con-meta{flex:1;min-width:0}
+.con-meta-row{display:flex;justify-content:space-between;font-size:11px;padding:5px 0;border-bottom:1px dashed rgba(255,255,255,.06)}
+.con-meta-row:last-child{border-bottom:0}
+.con-meta-row span:first-child{color:var(--text-dim)}
+.con-meta-row span:last-child{color:var(--text);font-weight:500;font-variant-numeric:tabular-nums}
+
+/* Chart */
+.mini-chart{margin-top:14px;height:60px;width:100%}
+
+/* Model cards */
+.models{display:flex;flex-direction:column;gap:12px;margin-top:4px}
+.model{
+  background:linear-gradient(135deg,rgba(255,255,255,.04),rgba(255,255,255,.015));
+  border:1px solid var(--card-br);
+  border-radius:18px;padding:16px;
+  position:relative;overflow:hidden;
+  transition:transform .25s ease,border-color .25s ease;
+}
+.model:active{transform:scale(.985)}
+.model::before{content:"";position:absolute;top:0;left:0;width:2px;height:100%;background:linear-gradient(180deg,var(--c1,#d4af37),transparent)}
+.model-head{display:flex;align-items:center;gap:12px}
+.model-avatar{
+  width:38px;height:38px;border-radius:11px;flex-shrink:0;
+  display:grid;place-items:center;font-size:13px;font-weight:700;color:#fff;
+  background:linear-gradient(135deg,var(--c1,#d4af37),var(--c2,#8a6e1e));
+  box-shadow:0 4px 14px rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,.25);
+}
+.model-info{flex:1;min-width:0}
+.model-name{font-size:14px;font-weight:600;display:flex;align-items:center;gap:6px}
+.model-badge{font-size:9px;padding:2px 6px;border-radius:4px;background:rgba(212,175,55,.15);color:var(--gold-2);font-weight:500;letter-spacing:.3px}
+.model-vendor{font-size:10px;color:var(--text-dim);margin-top:2px}
+.model-call{text-align:right}
+.model-call-dir{font-size:13px;font-weight:700;display:flex;align-items:center;gap:4px;justify-content:flex-end}
+.model-call-price{font-size:10px;color:var(--text-dim);margin-top:2px;font-variant-numeric:tabular-nums}
+.model-body{margin-top:12px;display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.metric{background:rgba(0,0,0,.2);border-radius:10px;padding:9px 11px;border:1px solid rgba(255,255,255,.04)}
+.metric-lbl{font-size:9px;color:var(--text-dim);letter-spacing:.8px;text-transform:uppercase}
+.metric-val{font-size:13px;font-weight:600;margin-top:2px;font-variant-numeric:tabular-nums}
+.accuracy-bar{margin-top:12px}
+.accuracy-bar-head{display:flex;justify-content:space-between;font-size:10px;color:var(--text-dim);margin-bottom:5px}
+.accuracy-bar-head b{color:var(--gold-2);font-weight:600}
+.bar-track{height:5px;background:rgba(255,255,255,.05);border-radius:100px;overflow:hidden;position:relative}
+.bar-fill{height:100%;border-radius:100px;background:linear-gradient(90deg,var(--c1,#d4af37),var(--c2,#f4d97a));box-shadow:0 0 10px rgba(212,175,55,.3);transition:width 1s ease}
+
+/* Leaderboard */
+.leaderboard{
+  margin-top:4px;border-radius:18px;
+  background:linear-gradient(160deg,rgba(255,255,255,.04),rgba(255,255,255,.01));
+  border:1px solid var(--card-br);overflow:hidden;
+}
+.lb-head{
+  display:grid;grid-template-columns:32px 1fr 70px 70px;
+  gap:10px;padding:12px 16px;font-size:10px;color:var(--text-dim);
+  letter-spacing:.8px;text-transform:uppercase;
+  border-bottom:1px solid var(--card-br);
+}
+.lb-row{
+  display:grid;grid-template-columns:32px 1fr 70px 70px;
+  gap:10px;padding:14px 16px;align-items:center;font-size:12px;
+  border-bottom:1px solid rgba(255,255,255,.04);
+}
+.lb-row:last-child{border-bottom:0}
+.lb-rank{
+  width:24px;height:24px;border-radius:7px;display:grid;place-items:center;
+  font-size:11px;font-weight:700;background:rgba(255,255,255,.06);color:var(--text-dim);
+}
+.lb-row:nth-child(2) .lb-rank{background:linear-gradient(135deg,#f4d97a,#d4af37);color:#1a1a1a}
+.lb-row:nth-child(3) .lb-rank{background:linear-gradient(135deg,#d7dde8,#a1a8b6);color:#1a1a1a}
+.lb-row:nth-child(4) .lb-rank{background:linear-gradient(135deg,#cd9b6c,#8b5e34);color:#fff}
+.lb-name{font-weight:600;color:var(--text)}
+.lb-sub{font-size:10px;color:var(--text-dim);margin-top:1px}
+.lb-acc{text-align:right;font-variant-numeric:tabular-nums;font-weight:600;color:var(--gold-2)}
+.lb-score{text-align:right;font-variant-numeric:tabular-nums;color:var(--text-dim)}
+
+/* Disclaimer */
+.disc{margin-top:24px;padding:14px 16px;border-radius:12px;background:rgba(255,255,255,.02);border:1px dashed rgba(255,255,255,.08);font-size:10px;color:var(--text-dim);line-height:1.7}
+.disc b{color:var(--gold-2);font-weight:600}
+.footer{text-align:center;font-size:10px;color:var(--text-dim);margin-top:18px;letter-spacing:1px}
+.footer span{color:var(--gold-2)}
+
+.fade-in{animation:fade .6s ease both}
+@keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="brand">
+      <div class="logo">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M3 17l5-5 4 4 8-9" stroke="#1a1a1a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="20" cy="7" r="1.5" fill="#1a1a1a"/></svg>
+      </div>
+      <div>
+        <div class="brand-name">AI <span>Oracle</span></div>
+        <div class="brand-sub">Market Intelligence</div>
+      </div>
+    </div>
+    <div class="live"><span class="live-dot"></span><span id="liveTime">实时同步</span></div>
+  </div>
+
+  <!-- Hero -->
+  <div class="hero fade-in">
+    <div class="hero-title">全球指数 · <em>AI 智能预测</em></div>
+    <div class="hero-desc">聚合全球领先大语言模型的市场洞察，提供次日走势预测与历史胜率追踪，让决策更具前瞻性。</div>
+    <div class="hero-stats">
+      <div class="hero-stat"><div class="hero-stat-val">8</div><div class="hero-stat-lbl">INDICES</div></div>
+      <div class="hero-stat"><div class="hero-stat-val">6</div><div class="hero-stat-lbl">MODELS</div></div>
+      <div class="hero-stat"><div class="hero-stat-val">12,480</div><div class="hero-stat-lbl">SIGNALS</div></div>
+    </div>
+  </div>
+
+  <!-- Index Tabs -->
+  <div class="sec-title"><h2>指数选择</h2><div class="more">横向滑动 →</div></div>
+  <div class="tabs" id="tabs"></div>
+
+  <!-- Consensus -->
+  <div class="consensus" id="consensus"></div>
+
+  <!-- Models -->
+  <div class="sec-title"><h2>模型预测</h2><div class="more" id="modelsCount">6 Models</div></div>
+  <div class="models" id="models"></div>
+
+  <!-- Leaderboard -->
+  <div class="sec-title"><h2>准确率排行</h2><div class="more">近 90 日</div></div>
+  <div class="leaderboard">
+    <div class="lb-head"><div>#</div><div>模型</div><div style="text-align:right">准确率</div><div style="text-align:right">评分</div></div>
+    <div id="lb"></div>
+  </div>
+
+  <!-- Disclaimer -->
+  <div class="disc">
+    <b>风险提示</b>　本页所示预测由人工智能模型生成，仅供研究与参考，不构成任何投资建议。市场有风险，决策需谨慎。历史准确率不代表未来表现。
+  </div>
+
+  <div class="footer">© 2026 · AI ORACLE · <span>POWERED BY LLM CONSENSUS</span></div>
+</div>
+
+<script>
+// ------- Data -------
+const INDICES = [
+  {code:"SPX",  name:"标普 500",  sym:"S&P 500",  price:5842.32, chg:+0.48, sparks:genSpark(5800,5850)},
+  {code:"NDX",  name:"纳斯达克100",sym:"NASDAQ",   price:20615.7, chg:+0.82, sparks:genSpark(20400,20700)},
+  {code:"DJI",  name:"道琼斯",    sym:"DOW",      price:42874.5, chg:-0.12, sparks:genSpark(42700,43000)},
+  {code:"HSI",  name:"恒生指数",  sym:"HSI",      price:22103.6, chg:+1.24, sparks:genSpark(21800,22200)},
+  {code:"SSE",  name:"上证指数",  sym:"SSE",      price:3348.21, chg:+0.35, sparks:genSpark(3310,3360)},
+  {code:"N225", name:"日经 225",  sym:"NIKKEI",   price:38792.1, chg:-0.54, sparks:genSpark(38700,39100)},
+  {code:"DAX",  name:"德国 DAX",  sym:"DAX",      price:19284.7, chg:+0.21, sparks:genSpark(19100,19400)},
+  {code:"FTSE", name:"富时 100",  sym:"FTSE",     price:8276.44, chg:+0.08, sparks:genSpark(8220,8300)},
+];
+
+const MODELS = [
+  {key:"gpt",    name:"GPT-5",        vendor:"OpenAI",   badge:"FLAGSHIP", c1:"#10a37f", c2:"#0d7a5f", initial:"G"},
+  {key:"claude", name:"Claude Opus",  vendor:"Anthropic",badge:"PREMIUM",  c1:"#d97757", c2:"#a84e2f", initial:"C"},
+  {key:"gemini", name:"Gemini Ultra", vendor:"Google",   badge:"PRO",      c1:"#4285f4", c2:"#1a56c4", initial:"✦"},
+  {key:"grok",   name:"Grok 4",       vendor:"xAI",      badge:"BETA",     c1:"#6b7280", c2:"#374151", initial:"X"},
+  {key:"deepseek",name:"DeepSeek R2", vendor:"DeepSeek", badge:"R-SERIES", c1:"#7c3aed", c2:"#4c1d95", initial:"D"},
+  {key:"qwen",   name:"Qwen Max",     vendor:"Alibaba",  badge:"MAX",      c1:"#615ced", c2:"#3730a3", initial:"Q"},
+];
+
+// Predictions per index per model (seeded pseudo-random but stable)
+function hash(s){let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)}return (h>>>0)}
+function rand(seed){return ((Math.sin(seed)*10000)%1+1)%1}
+
+function genSpark(lo,hi){
+  const arr=[];let v=(lo+hi)/2;
+  for(let i=0;i<30;i++){v+=(Math.random()-.5)*(hi-lo)*.06;v=Math.max(lo,Math.min(hi,v));arr.push(v)}
+  return arr;
+}
+
+function predictionFor(idx,model){
+  const seed=hash(idx.code+model.key);
+  const dirProb=rand(seed);
+  const dir=dirProb>.42?"up":"down";
+  const mag=(rand(seed+1)*1.8+.2);
+  const target=idx.price*(1+(dir==="up"?1:-1)*mag/100);
+  const conf=Math.floor(rand(seed+2)*25+65);
+  const acc=Math.floor(rand(seed+3)*22+60);
+  const score=(acc*0.7+conf*0.3).toFixed(1);
+  const horizon=["T+1","T+1","T+5","T+1"][Math.floor(rand(seed+4)*4)];
+  return {dir,mag:mag.toFixed(2),target:target.toFixed(2),conf,acc,score,horizon};
+}
+
+function consensusFor(idx){
+  let up=0,tot=0,accSum=0,targetSum=0,confSum=0;
+  MODELS.forEach(m=>{
+    const p=predictionFor(idx,m);
+    if(p.dir==="up")up++;tot++;
+    accSum+=p.acc;
+    targetSum+=parseFloat(p.target);
+    confSum+=p.conf;
+  });
+  return {
+    bullish:Math.round(up/tot*100),
+    avgAcc:Math.round(accSum/tot),
+    avgTarget:(targetSum/tot).toFixed(2),
+    avgConf:Math.round(confSum/tot),
+  };
+}
+
+// ------- Render -------
+let currentIdx=0;
+
+function renderTabs(){
+  const el=document.getElementById("tabs");
+  el.innerHTML=INDICES.map((i,k)=>`
+    <div class="tab ${k===currentIdx?'active':''}" data-k="${k}">
+      <div class="tab-name">${i.name}</div>
+      <div class="tab-price">${i.price.toLocaleString()} <span class="${i.chg>=0?'up':'down'}">${i.chg>=0?'+':''}${i.chg}%</span></div>
+    </div>
+  `).join("");
+  el.querySelectorAll(".tab").forEach(t=>{
+    t.addEventListener("click",()=>{currentIdx=+t.dataset.k;renderAll()});
+  });
+}
+
+function sparkSVG(data,color){
+  const w=300,h=60,pad=2;
+  const mn=Math.min(...data),mx=Math.max(...data);
+  const pts=data.map((v,i)=>{
+    const x=pad+(i/(data.length-1))*(w-2*pad);
+    const y=pad+(1-(v-mn)/(mx-mn||1))*(h-2*pad);
+    return `${x.toFixed(1)},${y.toFixed(1)}`;
+  }).join(" ");
+  const area=`M ${pad},${h} L ${pts.split(" ").join(" L ")} L ${w-pad},${h} Z`;
+  return `<svg class="mini-chart" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">
+    <defs>
+      <linearGradient id="g1" x1="0" x2="0" y1="0" y2="1">
+        <stop offset="0%" stop-color="${color}" stop-opacity=".35"/>
+        <stop offset="100%" stop-color="${color}" stop-opacity="0"/>
+      </linearGradient>
+    </defs>
+    <path d="${area}" fill="url(#g1)"/>
+    <polyline points="${pts}" fill="none" stroke="${color}" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+  </svg>`;
+}
+
+function renderConsensus(){
+  const idx=INDICES[currentIdx];
+  const c=consensusFor(idx);
+  const sparkColor=idx.chg>=0?"#2ee6a6":"#ff5f7a";
+  const el=document.getElementById("consensus");
+  el.style.setProperty("--p",c.bullish+"%");
+  el.innerHTML=`
+    <div class="con-head">
+      <div>
+        <div class="con-name">${idx.name}</div>
+        <div class="con-code">${idx.sym} · REAL-TIME</div>
+      </div>
+      <div class="con-price">
+        <div class="con-price-val">${idx.price.toLocaleString()}</div>
+        <div class="con-price-chg ${idx.chg>=0?'up':'down'}">${idx.chg>=0?'▲':'▼'} ${Math.abs(idx.chg)}%</div>
+      </div>
+    </div>
+    ${sparkSVG(idx.sparks,sparkColor)}
+    <div class="con-target">
+      <div class="target-ring" style="background:conic-gradient(${c.bullish>=50?'#d4af37':'#ff5f7a'} ${c.bullish}%, rgba(255,255,255,.06) 0)">
+        <div class="target-ring-inner"><b>${c.bullish}%</b><span>BULLISH</span></div>
+      </div>
+      <div class="con-meta">
+        <div class="con-meta-row"><span>共识目标位</span><span>${Number(c.avgTarget).toLocaleString()}</span></div>
+        <div class="con-meta-row"><span>平均置信度</span><span>${c.avgConf}%</span></div>
+        <div class="con-meta-row"><span>模型平均准确率</span><span>${c.avgAcc}%</span></div>
+        <div class="con-meta-row"><span>预测时效</span><span>T+1 交易日</span></div>
+      </div>
+    </div>
+  `;
+  // trigger ring animation
+  const r=el.querySelector(".target-ring");r.style.opacity="0";requestAnimationFrame(()=>{r.style.transition="opacity .6s";r.style.opacity="1"});
+}
+
+function renderModels(){
+  const idx=INDICES[currentIdx];
+  const el=document.getElementById("models");
+  el.innerHTML=MODELS.map(m=>{
+    const p=predictionFor(idx,m);
+    const dirClass=p.dir==="up"?"up":"down";
+    const arrow=p.dir==="up"?"▲":"▼";
+    return `
+      <div class="model fade-in" style="--c1:${m.c1};--c2:${m.c2}">
+        <div class="model-head">
+          <div class="model-avatar">${m.initial}</div>
+          <div class="model-info">
+            <div class="model-name">${m.name}<span class="model-badge">${m.badge}</span></div>
+            <div class="model-vendor">${m.vendor} · ${p.horizon}</div>
+          </div>
+          <div class="model-call">
+            <div class="model-call-dir ${dirClass}">${arrow} ${p.mag}%</div>
+            <div class="model-call-price">→ ${Number(p.target).toLocaleString()}</div>
+          </div>
+        </div>
+        <div class="model-body">
+          <div class="metric"><div class="metric-lbl">置信度</div><div class="metric-val">${p.conf}%</div></div>
+          <div class="metric"><div class="metric-lbl">综合评分</div><div class="metric-val">${p.score}</div></div>
+        </div>
+        <div class="accuracy-bar">
+          <div class="accuracy-bar-head"><span>历史准确率</span><b>${p.acc}%</b></div>
+          <div class="bar-track"><div class="bar-fill" style="width:${p.acc}%;background:linear-gradient(90deg,${m.c1},${m.c2})"></div></div>
+        </div>
+      </div>
+    `;
+  }).join("");
+}
+
+function renderLeaderboard(){
+  const idx=INDICES[currentIdx];
+  const rows=MODELS.map(m=>{
+    const p=predictionFor(idx,m);
+    return {m,p};
+  }).sort((a,b)=>parseFloat(b.p.score)-parseFloat(a.p.score));
+  document.getElementById("lb").innerHTML=rows.map((r,i)=>`
+    <div class="lb-row">
+      <div class="lb-rank">${i+1}</div>
+      <div>
+        <div class="lb-name">${r.m.name}</div>
+        <div class="lb-sub">${r.m.vendor}</div>
+      </div>
+      <div class="lb-acc">${r.p.acc}%</div>
+      <div class="lb-score">${r.p.score}</div>
+    </div>
+  `).join("");
+}
+
+function renderAll(){
+  renderTabs();
+  renderConsensus();
+  renderModels();
+  renderLeaderboard();
+}
+
+function tick(){
+  const now=new Date();
+  const hh=String(now.getHours()).padStart(2,"0");
+  const mm=String(now.getMinutes()).padStart(2,"0");
+  const ss=String(now.getSeconds()).padStart(2,"0");
+  document.getElementById("liveTime").textContent=`${hh}:${mm}:${ss} LIVE`;
+}
+setInterval(tick,1000);tick();
+
+renderAll();
+</script>
+</body>
+</html>
