@@ -807,64 +807,93 @@ document.getElementById('cPick').addEventListener('input',e=>updateColor('hex',h
 /* ---------- IP Lookup ---------- */
 function codeToFlag(cc){if(!cc||cc.length!==2)return '';return cc.toUpperCase().replace(/./g,c=>String.fromCodePoint(127397+c.charCodeAt()))}
 
+/* 百度 qifu：国内/海外都覆盖，返回中文地名 */
+async function ipFromBaidu(q){
+  const url=q
+    ?`https://qifu-api.baidubce.com/ip/geo/v1/district?ip=${encodeURIComponent(q)}`
+    :`https://qifu-api.baidubce.com/ip/local/geo/v1/district`;
+  const r=await fetch(url);
+  const j=await r.json();
+  if(j.code!=='Success')throw new Error(j.message||'查询失败');
+  const d=j.data||{};
+  const region=[d.prov,d.city,d.district].filter(Boolean).join(' / ');
+  return {
+    ip:j.ip,type:(j.ip||'').includes(':')?'IPv6':'IPv4',
+    country:d.country,country_code:'',
+    continent:d.continent,
+    region:d.prov||'',city:d.city||'',district:d.district||'',
+    postal:d.zipcode,
+    latitude:null,longitude:null,
+    tz:null,tz_offset:null,
+    isp:d.isp,org:d.owner,asn:null,
+    _combined:region,
+    source:'百度 qifu'
+  };
+}
+
+/* CSDN 简版 IP 接口（国内网络通，但字段较少） */
+async function ipFromCSDN(q){
+  const url=q
+    ?`https://searchplugin.csdn.net/api/v1/ip/get?ip=${encodeURIComponent(q)}`
+    :`https://searchplugin.csdn.net/api/v1/ip/get?ip=`;
+  const r=await fetch(url);
+  const j=await r.json();
+  if(j.code!==200||!j.data)throw new Error(j.message||'查询失败');
+  const d=j.data;
+  return {
+    ip:d.ip,type:(d.ip||'').includes(':')?'IPv6':'IPv4',
+    country:'',country_code:'',continent:'',
+    region:'',city:'',district:'',postal:'',
+    latitude:null,longitude:null,
+    tz:null,tz_offset:null,
+    isp:null,org:null,asn:null,
+    _combined:d.address||'',
+    source:'CSDN'
+  };
+}
+
+/* ipapi.co：兜底，国际数据最全 */
 async function ipFromIpapi(q){
   const url=q?`https://ipapi.co/${encodeURIComponent(q)}/json/`:`https://ipapi.co/json/`;
   const r=await fetch(url);
   const d=await r.json();
   if(d.error)throw new Error(d.reason||'查询失败');
   return {
-    ip:d.ip,
-    type:d.version||(d.ip&&d.ip.includes(':')?'IPv6':'IPv4'),
+    ip:d.ip,type:d.version||((d.ip||'').includes(':')?'IPv6':'IPv4'),
     country:d.country_name,country_code:d.country_code,
     continent:d.continent_code,
-    region:d.region,city:d.city,postal:d.postal,
+    region:d.region,city:d.city,district:'',postal:d.postal,
     latitude:d.latitude,longitude:d.longitude,
     tz:d.timezone,tz_offset:d.utc_offset,
-    isp:d.org,org:d.org,asn:d.asn,asn_domain:'',
+    isp:d.org,org:d.org,asn:d.asn,
     source:'ipapi.co'
-  };
-}
-async function ipFromFreeipapi(q){
-  const url=q?`https://freeipapi.com/api/json/${encodeURIComponent(q)}`:`https://freeipapi.com/api/json/`;
-  const r=await fetch(url);
-  const d=await r.json();
-  if(!d.ipAddress)throw new Error(d.message||'查询失败');
-  return {
-    ip:d.ipAddress,
-    type:d.ipVersion?('IPv'+d.ipVersion):'—',
-    country:d.countryName,country_code:d.countryCode,
-    continent:d.continent,
-    region:d.regionName,city:d.cityName,postal:d.zipCode,
-    latitude:d.latitude,longitude:d.longitude,
-    tz:null,tz_offset:d.timeZone,
-    isp:null,org:null,asn:null,asn_domain:'',
-    source:'freeipapi.com'
   };
 }
 
 async function ipLookup(q){
   const msg=document.getElementById('ipMsg');
   msg.textContent='查询中...';msg.className='msg';
-  let d=null,errs=[];
-  for(const fn of [ipFromIpapi,ipFromFreeipapi]){
-    try{d=await fn(q);break}catch(e){errs.push(`${fn.name}: ${e.message}`)}
+  let d=null;const errs=[];
+  for(const [name,fn] of [['百度 qifu',ipFromBaidu],['ipapi.co',ipFromIpapi],['CSDN',ipFromCSDN]]){
+    try{d=await fn(q);break}catch(e){errs.push(`${name}: ${e.message||e}`)}
   }
-  if(!d){setErr('ipMsg','查询失败 — '+errs.join(' | '));return}
+  if(!d){setErr('ipMsg','全部数据源失败 — '+errs.join(' | '));return}
   document.getElementById('ipResult').style.display='';
   document.getElementById('ipVal').textContent=d.ip||'—';
   document.getElementById('ipType').textContent=d.type||'—';
   const flag=codeToFlag(d.country_code);
-  document.getElementById('ipCountry').textContent=(flag?flag+' ':'')+(d.country||'—')+(d.country_code?` (${d.country_code})`:'');
+  const cTxt=(flag?flag+' ':'')+(d.country||(d._combined?d._combined.split(' ')[0]:'—'))+(d.country_code?` (${d.country_code})`:'');
+  document.getElementById('ipCountry').textContent=cTxt;
   document.getElementById('ipTz').textContent=[d.tz,d.tz_offset].filter(Boolean).join(' ')||'—';
   document.getElementById('ipCont').textContent=d.continent||'—';
   document.getElementById('ipRegion').textContent=d.region||'—';
-  document.getElementById('ipCity').textContent=d.city||'—';
+  document.getElementById('ipCity').textContent=[d.city,d.district].filter(Boolean).join(' · ')||(d._combined||'—');
   document.getElementById('ipPostal').textContent=d.postal||'—';
   const lat=d.latitude,lng=d.longitude;
   document.getElementById('ipLatLng').textContent=(lat!=null&&lng!=null)?`${lat}, ${lng}`:'—';
   document.getElementById('ipIsp').textContent=d.isp||'—';
   document.getElementById('ipOrg').textContent=d.org||'—';
-  document.getElementById('ipAsn').textContent=d.asn?`${d.asn} ${d.asn_domain||''}`.trim():'—';
+  document.getElementById('ipAsn').textContent=d.asn||'—';
   const mapEl=document.getElementById('ipMap');
   if(lat!=null&&lng!=null){mapEl.href=`https://www.openstreetmap.org/?mlat=${lat}&mlon=${lng}&zoom=10`;mapEl.style.display=''}
   else{mapEl.style.display='none'}
