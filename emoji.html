@@ -1,0 +1,880 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<meta name="theme-color" content="#0a0e1a" />
+<title>Emoji 厨房 · 表情融合</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0a0e1a;
+  --bg-2:#0f1424;
+  --panel:rgba(255,255,255,.03);
+  --panel-2:rgba(255,255,255,.05);
+  --br:rgba(255,255,255,.08);
+  --br-2:rgba(255,255,255,.14);
+  --text:#e8ecf5;
+  --text-dim:#8a93a8;
+  --text-mute:#5a6478;
+  --gold:#d4af37;
+  --gold-2:#f4d97a;
+  --cyan:#5ad6ff;
+  --green:#2ee6a6;
+  --red:#ff5f7a;
+  --purple:#a78bff;
+}
+html,body{height:100%}
+body{
+  background:var(--bg);color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","PingFang SC","Helvetica Neue","Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",Arial,sans-serif;
+  font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased;
+  background:
+    radial-gradient(1200px 600px at 85% -10%,rgba(212,175,55,.08),transparent 60%),
+    radial-gradient(900px 500px at -10% 30%,rgba(167,139,255,.06),transparent 60%),
+    radial-gradient(800px 500px at 50% 110%,rgba(90,214,255,.05),transparent 60%),
+    linear-gradient(180deg,#0a0e1a 0%,#070a14 100%);
+  min-height:100vh;
+}
+
+.wrap{max-width:1100px;margin:0 auto;padding:28px 24px 60px}
+
+/* ---- Top bar ---- */
+.topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:26px;gap:16px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:12px}
+.logo{
+  width:40px;height:40px;border-radius:11px;
+  background:linear-gradient(135deg,#d4af37 0%,#f4d97a 50%,#8a6e1e 100%);
+  display:grid;place-items:center;font-size:20px;
+  box-shadow:0 6px 20px rgba(212,175,55,.35),inset 0 1px 0 rgba(255,255,255,.4);
+  position:relative;overflow:hidden;
+}
+.logo::after{content:"";position:absolute;inset:0;background:radial-gradient(circle at 30% 20%,rgba(255,255,255,.5),transparent 45%)}
+.brand-t{font-size:17px;font-weight:700;letter-spacing:.3px}
+.brand-t span{background:linear-gradient(90deg,#f4d97a,#d4af37);-webkit-background-clip:text;background-clip:text;color:transparent}
+.brand-s{font-size:10px;color:var(--text-dim);letter-spacing:2px;text-transform:uppercase;margin-top:2px}
+
+.back{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:8px 14px;border-radius:9px;
+  border:1px solid var(--br);background:var(--panel);
+  color:var(--text-dim);font-size:12.5px;text-decoration:none;
+  transition:all .18s ease;
+}
+.back:hover{background:var(--panel-2);color:var(--text);border-color:var(--br-2)}
+
+/* ---- Hero / Title ---- */
+.hero{margin-bottom:22px}
+.hero h1{font-size:24px;font-weight:700;letter-spacing:.3px;margin-bottom:6px}
+.hero h1 span{background:linear-gradient(90deg,#f4d97a,#d4af37);-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero p{color:var(--text-dim);font-size:13px}
+
+/* ---- Mixer (two slots + result) ---- */
+.card{
+  background:linear-gradient(160deg,rgba(255,255,255,.035),rgba(255,255,255,.01));
+  border:1px solid var(--br);
+  border-radius:18px;
+  padding:28px;
+  position:relative;overflow:hidden;
+}
+.card::before{
+  content:"";position:absolute;top:0;right:0;width:320px;height:200px;
+  background:radial-gradient(circle at top right,rgba(212,175,55,.1),transparent 70%);
+  pointer-events:none;
+}
+
+.mixer{
+  display:grid;
+  grid-template-columns:1fr auto 1fr auto 1.2fr;
+  gap:18px;align-items:center;
+  position:relative;z-index:1;
+}
+@media(max-width:760px){
+  .mixer{grid-template-columns:1fr 1fr;gap:14px}
+  .mixer .op{display:none}
+  .mixer .result{grid-column:1 / -1}
+}
+
+.slot{
+  aspect-ratio:1/1;
+  background:rgba(0,0,0,.28);
+  border:1.5px dashed var(--br-2);
+  border-radius:16px;
+  display:grid;place-items:center;
+  cursor:pointer;
+  transition:all .2s ease;
+  font-size:64px;line-height:1;
+  position:relative;
+  user-select:none;
+  min-height:0;
+}
+.slot:hover{border-color:rgba(212,175,55,.45);background:rgba(212,175,55,.04)}
+.slot.active{
+  border-color:rgba(212,175,55,.6);
+  box-shadow:0 0 0 3px rgba(212,175,55,.12), 0 8px 24px rgba(212,175,55,.08);
+  background:rgba(212,175,55,.06);
+}
+.slot.filled{border-style:solid;border-color:var(--br-2);background:rgba(255,255,255,.04)}
+.slot.filled.active{border-color:rgba(212,175,55,.6)}
+.slot .placeholder{
+  color:var(--text-mute);font-size:12px;letter-spacing:1.5px;
+  text-transform:uppercase;font-weight:600;text-align:center;
+  padding:0 8px;
+}
+.slot .tag{
+  position:absolute;top:8px;left:10px;
+  font-size:9.5px;letter-spacing:1.2px;color:var(--text-mute);
+  font-weight:600;text-transform:uppercase;
+}
+.slot .clear{
+  position:absolute;top:6px;right:6px;
+  width:22px;height:22px;border-radius:50%;
+  background:rgba(0,0,0,.4);border:1px solid var(--br-2);
+  color:var(--text-dim);cursor:pointer;
+  display:none;place-items:center;font-size:12px;
+  transition:all .15s;
+}
+.slot .clear:hover{color:var(--red);border-color:rgba(255,95,122,.5)}
+.slot.filled .clear{display:grid}
+
+.op{
+  font-size:30px;color:var(--text-mute);font-weight:300;
+  text-align:center;user-select:none;
+}
+
+.result{
+  aspect-ratio:1/1;
+  background:
+    radial-gradient(circle at 50% 50%,rgba(212,175,55,.08),transparent 60%),
+    rgba(0,0,0,.28);
+  border:1.5px solid rgba(212,175,55,.25);
+  border-radius:16px;
+  display:grid;place-items:center;
+  position:relative;overflow:hidden;
+  min-height:0;
+}
+.result img{max-width:80%;max-height:80%;image-rendering:auto;filter:drop-shadow(0 10px 30px rgba(0,0,0,.5))}
+.result .hint{color:var(--text-mute);font-size:12px;letter-spacing:1.2px;text-transform:uppercase;font-weight:600;text-align:center;padding:0 12px}
+.result .loader{
+  width:32px;height:32px;border:3px solid rgba(212,175,55,.15);
+  border-top-color:var(--gold);border-radius:50%;
+  animation:spin .8s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ---- Actions ---- */
+.actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:20px;justify-content:center}
+.btn{
+  padding:10px 18px;border-radius:10px;font-size:12.5px;font-weight:600;
+  border:1px solid var(--br);background:var(--panel);color:var(--text);
+  cursor:pointer;transition:all .18s ease;letter-spacing:.3px;
+  display:inline-flex;align-items:center;gap:7px;
+  font-family:inherit;
+}
+.btn:hover:not(:disabled){background:var(--panel-2);border-color:var(--br-2)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.primary{
+  background:linear-gradient(135deg,rgba(212,175,55,.22),rgba(212,175,55,.08));
+  border-color:rgba(212,175,55,.45);color:var(--gold-2);
+  box-shadow:0 4px 14px rgba(212,175,55,.12);
+}
+.btn.primary:hover:not(:disabled){background:linear-gradient(135deg,rgba(212,175,55,.3),rgba(212,175,55,.14))}
+.btn svg{width:14px;height:14px}
+
+.msg{text-align:center;font-size:12px;color:var(--text-mute);margin-top:10px;min-height:16px}
+.msg.err{color:var(--red)}
+.msg.ok{color:var(--green)}
+
+/* ---- Picker ---- */
+.picker{margin-top:26px}
+.picker-top{
+  display:flex;gap:10px;align-items:center;margin-bottom:14px;flex-wrap:wrap;
+}
+.search-wrap{
+  position:relative;flex:1;min-width:200px;
+}
+.search-wrap svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--text-mute);width:14px;height:14px}
+.search-wrap input{
+  width:100%;background:var(--panel);border:1px solid var(--br);color:var(--text);
+  padding:10px 12px 10px 36px;border-radius:10px;outline:none;font-size:13px;
+  transition:border-color .2s;font-family:inherit;
+}
+.search-wrap input:focus{border-color:rgba(212,175,55,.4)}
+
+.filter-pill{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:9px 14px;border-radius:10px;
+  background:rgba(212,175,55,.1);border:1px solid rgba(212,175,55,.3);
+  color:var(--gold-2);font-size:12px;font-weight:600;cursor:pointer;
+  transition:all .15s;
+}
+.filter-pill:hover{background:rgba(212,175,55,.16)}
+.filter-pill .x{font-size:14px;opacity:.7}
+
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(52px,1fr));
+  gap:6px;
+  background:rgba(0,0,0,.25);
+  border:1px solid var(--br);
+  border-radius:14px;
+  padding:12px;
+  max-height:420px;
+  overflow-y:auto;
+}
+.grid::-webkit-scrollbar{width:8px}
+.grid::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:4px}
+.grid::-webkit-scrollbar-thumb:hover{background:rgba(255,255,255,.18)}
+
+.cell{
+  aspect-ratio:1/1;
+  display:grid;place-items:center;
+  font-size:28px;line-height:1;
+  border-radius:9px;
+  cursor:pointer;
+  transition:all .12s ease;
+  border:1px solid transparent;
+  user-select:none;
+  background:transparent;
+}
+.cell:hover{background:rgba(212,175,55,.12);border-color:rgba(212,175,55,.3);transform:scale(1.08)}
+.cell.selected-left{background:rgba(90,214,255,.15);border-color:rgba(90,214,255,.5)}
+.cell.selected-right{background:rgba(167,139,255,.15);border-color:rgba(167,139,255,.5)}
+.cell.dim{opacity:.25;pointer-events:none}
+.cell img{width:70%;height:70%;object-fit:contain}
+
+.empty{grid-column:1/-1;text-align:center;padding:30px;color:var(--text-mute);font-size:12.5px}
+
+/* ---- Combos list (when one emoji picked) ---- */
+.combos{margin-top:20px}
+.combos-t{
+  font-size:11px;color:var(--text-dim);letter-spacing:1.5px;
+  text-transform:uppercase;font-weight:600;margin-bottom:10px;
+}
+.combo-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(70px,1fr));
+  gap:6px;
+  background:rgba(0,0,0,.2);
+  border:1px solid var(--br);
+  border-radius:12px;
+  padding:10px;
+  max-height:280px;overflow-y:auto;
+}
+.combo-grid::-webkit-scrollbar{width:8px}
+.combo-grid::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:4px}
+.combo-cell{
+  aspect-ratio:1/1;border-radius:10px;
+  background:rgba(255,255,255,.03);border:1px solid var(--br);
+  display:grid;place-items:center;cursor:pointer;
+  transition:all .15s;padding:6px;
+}
+.combo-cell:hover{background:rgba(212,175,55,.1);border-color:rgba(212,175,55,.3);transform:translateY(-2px)}
+.combo-cell img{width:100%;height:100%;object-fit:contain}
+
+/* ---- Loading overlay (metadata) ---- */
+.boot{
+  display:grid;place-items:center;padding:40px 20px;
+  color:var(--text-dim);font-size:13px;gap:14px;
+}
+.boot .loader{width:28px;height:28px;border:3px solid rgba(212,175,55,.15);border-top-color:var(--gold);border-radius:50%;animation:spin .8s linear infinite}
+
+.hide{display:none !important}
+
+/* Footer */
+.foot{text-align:center;margin-top:32px;color:var(--text-mute);font-size:11px;letter-spacing:.5px}
+.foot a{color:var(--text-dim);text-decoration:none;border-bottom:1px dotted rgba(255,255,255,.15)}
+.foot a:hover{color:var(--gold-2);border-color:rgba(212,175,55,.3)}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <div class="topbar">
+    <div class="brand">
+      <div class="logo">🍳</div>
+      <div>
+        <div class="brand-t">Emoji <span>厨房</span></div>
+        <div class="brand-s">Emoji Kitchen</div>
+      </div>
+    </div>
+    <a href="tools.html" class="back">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+      返回工具集
+    </a>
+  </div>
+
+  <div class="hero">
+    <h1>把两个 <span>Emoji</span> 融合成一个新表情</h1>
+    <p>基于 Google Emoji Kitchen 官方数据，点击任意两个 emoji 即可合成。</p>
+  </div>
+
+  <!-- ============ Mixer ============ -->
+  <div class="card">
+
+    <div class="mixer" id="mixer">
+      <div class="slot active" data-slot="left" id="slotLeft">
+        <span class="tag">左</span>
+        <button class="clear" data-clear="left" title="清除">✕</button>
+        <span class="placeholder">点我<br/>选择</span>
+      </div>
+      <div class="op">+</div>
+      <div class="slot" data-slot="right" id="slotRight">
+        <span class="tag">右</span>
+        <button class="clear" data-clear="right" title="清除">✕</button>
+        <span class="placeholder">点我<br/>选择</span>
+      </div>
+      <div class="op">=</div>
+      <div class="result" id="result">
+        <span class="hint">融合结果将出现在这里</span>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button class="btn primary" id="btnRandom">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 3h5v5M4 20L21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/></svg>
+        随机组合
+      </button>
+      <button class="btn" id="btnSwap" disabled>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 16V4m0 0L3 8m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4"/></svg>
+        交换左右
+      </button>
+      <button class="btn" id="btnDownload" disabled>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+        下载 PNG
+      </button>
+      <button class="btn" id="btnCopy" disabled>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+        复制图片
+      </button>
+      <button class="btn" id="btnReset">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1015-6.7L21 8M21 3v5h-5"/></svg>
+        重置
+      </button>
+    </div>
+    <div class="msg" id="msg"></div>
+
+    <!-- Combos of the currently selected single emoji -->
+    <div class="combos hide" id="combosBox">
+      <div class="combos-t" id="combosTitle">与 😀 可融合的组合 · <span id="combosCount">0</span></div>
+      <div class="combo-grid" id="combosGrid"></div>
+    </div>
+
+  </div>
+
+  <!-- ============ Picker ============ -->
+  <div class="picker">
+    <div class="picker-top">
+      <div class="search-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+        <input id="searchInput" type="text" placeholder="搜索 emoji（名称 / 关键词 / 字符）" />
+      </div>
+      <button class="filter-pill hide" id="filterPill">
+        <span id="filterLabel">仅显示可与 😀 组合</span>
+        <span class="x">✕</span>
+      </button>
+    </div>
+
+    <div id="bootBox" class="boot">
+      <div class="loader"></div>
+      <div>正在加载 Emoji Kitchen 数据…</div>
+    </div>
+
+    <div class="grid hide" id="grid"></div>
+  </div>
+
+  <div class="foot">
+    数据来源：<a href="https://github.com/xsalazar/emoji-kitchen-backend" target="_blank" rel="noopener">xsalazar/emoji-kitchen-backend</a> · 图片版权归 Google LLC
+  </div>
+
+</div>
+
+<script>
+(function(){
+  'use strict';
+
+  const METADATA_URL = 'https://cdn.jsdelivr.net/gh/xsalazar/emoji-kitchen-backend@main/app/metadata.json';
+
+  const $ = (id) => document.getElementById(id);
+  const slotLeft = $('slotLeft'), slotRight = $('slotRight');
+  const result = $('result');
+  const grid = $('grid');
+  const bootBox = $('bootBox');
+  const searchInput = $('searchInput');
+  const msg = $('msg');
+  const combosBox = $('combosBox');
+  const combosTitle = $('combosTitle');
+  const combosCount = $('combosCount');
+  const combosGrid = $('combosGrid');
+  const filterPill = $('filterPill');
+  const filterLabel = $('filterLabel');
+  const btnRandom = $('btnRandom');
+  const btnSwap = $('btnSwap');
+  const btnDownload = $('btnDownload');
+  const btnCopy = $('btnCopy');
+  const btnReset = $('btnReset');
+
+  const state = {
+    meta: null,
+    entries: [],            // [{code, alt, emoji, keywords}]
+    activeSlot: 'left',
+    left: null,             // code (e.g. "1f600")
+    right: null,
+    filter: '',
+    filterByCode: null,     // when set, only show emojis that combine with this code
+    currentUrl: null,
+  };
+
+  // ---------- Load metadata ----------
+  async function loadMeta(){
+    try{
+      const res = await fetch(METADATA_URL, {cache:'force-cache'});
+      if(!res.ok) throw new Error('HTTP '+res.status);
+      const json = await res.json();
+      state.meta = json;
+
+      const dataObj = json.data || {};
+      const supported = new Set(json.knownSupportedEmoji || Object.keys(dataObj));
+      const list = [];
+      for(const code of supported){
+        const e = dataObj[code];
+        if(!e) continue;
+        list.push({
+          code,
+          alt: e.alt || '',
+          emoji: e.emoji || e.alt || '',
+          keywords: (e.keywords || []).join(' ').toLowerCase(),
+          order: typeof e.gBoardOrder === 'number' ? e.gBoardOrder : 9999,
+        });
+      }
+      list.sort((a,b) => a.order - b.order);
+      state.entries = list;
+
+      bootBox.classList.add('hide');
+      grid.classList.remove('hide');
+      renderGrid();
+    }catch(err){
+      bootBox.innerHTML = '<div style="color:var(--red)">加载失败：'+ err.message +'<br/><br/>请检查网络或刷新重试。</div>';
+    }
+  }
+
+  // ---------- Lookup combination ----------
+  function getCombination(a, b){
+    if(!state.meta || !a || !b) return null;
+    const dataA = state.meta.data?.[a];
+    if(!dataA || !dataA.combinations) return null;
+    // xsalazar's structure: combinations is keyed by the SORTED pair id like "1f600_1f601"
+    // but historically it's keyed by the other emoji's code. Handle both.
+    const combos = dataA.combinations;
+
+    // Try direct key = other emoji code
+    let arr = combos[b];
+    if(!arr){
+      // Try pair-id keys
+      const key1 = a + '_' + b;
+      const key2 = b + '_' + a;
+      arr = combos[key1] || combos[key2];
+    }
+    if(!arr){
+      // Fallback: iterate values, find one whose leftEmoji/rightEmoji matches {a,b}
+      for(const k in combos){
+        const v = combos[k];
+        if(!Array.isArray(v) || !v.length) continue;
+        const first = v[0];
+        if(!first) continue;
+        const l = first.leftEmoji, r = first.rightEmoji;
+        if((l===a && r===b) || (l===b && r===a)){ arr = v; break; }
+      }
+    }
+    if(!arr || !arr.length) return null;
+
+    // Prefer latest
+    let pick = arr.find(x => x.isLatest);
+    if(!pick) pick = arr[arr.length-1];
+    return pick && pick.gStaticUrl ? pick : null;
+  }
+
+  function hasAnyCombination(code){
+    const d = state.meta?.data?.[code];
+    if(!d || !d.combinations) return false;
+    for(const k in d.combinations){
+      const v = d.combinations[k];
+      if(Array.isArray(v) && v.length) return true;
+    }
+    return false;
+  }
+
+  function getCombinationPartners(code){
+    // Return array of {other: code, url, emoji}
+    const d = state.meta?.data?.[code];
+    if(!d || !d.combinations) return [];
+    const out = [];
+    const seen = new Set();
+    for(const k in d.combinations){
+      const arr = d.combinations[k];
+      if(!Array.isArray(arr) || !arr.length) continue;
+      const pick = arr.find(x=>x.isLatest) || arr[arr.length-1];
+      if(!pick || !pick.gStaticUrl) continue;
+      const other = (pick.leftEmoji === code) ? pick.rightEmoji : pick.leftEmoji;
+      if(seen.has(other)) continue;
+      seen.add(other);
+      const otherEntry = state.meta.data?.[other];
+      out.push({
+        other,
+        url: pick.gStaticUrl,
+        emoji: otherEntry?.emoji || otherEntry?.alt || '?',
+      });
+    }
+    return out;
+  }
+
+  // ---------- Render grid ----------
+  function renderGrid(){
+    const q = state.filter.trim().toLowerCase();
+    const filterCode = state.filterByCode;
+    let partners = null;
+    if(filterCode){
+      partners = new Set(getCombinationPartners(filterCode).map(p => p.other));
+      // An emoji can always combine with itself if it has a self-entry
+      if(getCombination(filterCode, filterCode)) partners.add(filterCode);
+    }
+
+    const frag = document.createDocumentFragment();
+    let shown = 0;
+    for(const e of state.entries){
+      if(q){
+        const hay = (e.emoji + ' ' + e.alt + ' ' + e.keywords).toLowerCase();
+        if(!hay.includes(q)) continue;
+      }
+      const btn = document.createElement('div');
+      btn.className = 'cell';
+      btn.dataset.code = e.code;
+      btn.textContent = e.emoji;
+      btn.title = e.alt || e.emoji;
+
+      if(state.left === e.code) btn.classList.add('selected-left');
+      if(state.right === e.code) btn.classList.add('selected-right');
+
+      if(partners && !partners.has(e.code)) btn.classList.add('dim');
+
+      frag.appendChild(btn);
+      shown++;
+    }
+    grid.innerHTML = '';
+    if(shown === 0){
+      const empty = document.createElement('div');
+      empty.className = 'empty';
+      empty.textContent = '没有匹配的 emoji';
+      grid.appendChild(empty);
+    } else {
+      grid.appendChild(frag);
+    }
+  }
+
+  // ---------- Render slots / result ----------
+  function updateSlot(which){
+    const el = which === 'left' ? slotLeft : slotRight;
+    const code = state[which];
+    const ph = el.querySelector('.placeholder');
+    // Remove any previous emoji text (keep tag + clear + placeholder)
+    el.querySelectorAll('.big').forEach(n => n.remove());
+    if(code){
+      const entry = state.meta.data[code];
+      const span = document.createElement('span');
+      span.className = 'big';
+      span.textContent = entry?.emoji || entry?.alt || '?';
+      el.appendChild(span);
+      el.classList.add('filled');
+      ph.style.display = 'none';
+    }else{
+      el.classList.remove('filled');
+      ph.style.display = '';
+    }
+    // active indicator
+    slotLeft.classList.toggle('active', state.activeSlot === 'left');
+    slotRight.classList.toggle('active', state.activeSlot === 'right');
+  }
+
+  function setActiveSlot(which){
+    state.activeSlot = which;
+    slotLeft.classList.toggle('active', which === 'left');
+    slotRight.classList.toggle('active', which === 'right');
+  }
+
+  function updateResult(){
+    const {left, right} = state;
+    btnDownload.disabled = true;
+    btnCopy.disabled = true;
+    btnSwap.disabled = !(left && right);
+    msg.textContent = '';
+    msg.className = 'msg';
+
+    if(!left || !right){
+      result.innerHTML = '<span class="hint">融合结果将出现在这里</span>';
+      state.currentUrl = null;
+      updateCombosPanel();
+      return;
+    }
+
+    const combo = getCombination(left, right);
+    if(!combo){
+      result.innerHTML = '<span class="hint" style="color:var(--red)">这两个 emoji<br/>暂无融合图</span>';
+      state.currentUrl = null;
+      msg.textContent = 'Google Emoji Kitchen 尚未为此组合生成图片，试试其他搭配';
+      msg.className = 'msg err';
+      updateCombosPanel();
+      return;
+    }
+
+    result.innerHTML = '<div class="loader"></div>';
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      result.innerHTML = '';
+      result.appendChild(img);
+      btnDownload.disabled = false;
+      btnCopy.disabled = false;
+      state.currentUrl = combo.gStaticUrl;
+    };
+    img.onerror = () => {
+      result.innerHTML = '<span class="hint" style="color:var(--red)">图片加载失败</span>';
+      state.currentUrl = null;
+    };
+    img.alt = (state.meta.data[left]?.emoji || '?') + ' + ' + (state.meta.data[right]?.emoji || '?');
+    img.src = combo.gStaticUrl;
+
+    updateCombosPanel();
+  }
+
+  function updateCombosPanel(){
+    // Show combos panel if exactly one slot is filled
+    const one = (state.left && !state.right) ? state.left
+              : (!state.left && state.right) ? state.right
+              : null;
+    if(!one){
+      combosBox.classList.add('hide');
+      return;
+    }
+    const partners = getCombinationPartners(one);
+    if(!partners.length){
+      combosBox.classList.add('hide');
+      return;
+    }
+    const entry = state.meta.data[one];
+    combosTitle.innerHTML = '与 ' + (entry?.emoji || '?') + ' 可融合的组合 · <span id="combosCount">'+ partners.length +'</span>';
+    combosGrid.innerHTML = '';
+    // limit to 60 to keep DOM light
+    const items = partners.slice(0, 120);
+    for(const p of items){
+      const cell = document.createElement('div');
+      cell.className = 'combo-cell';
+      cell.title = p.emoji + ' — 点击填入另一槽位';
+      const img = document.createElement('img');
+      img.loading = 'lazy';
+      img.src = p.url;
+      img.alt = p.emoji;
+      cell.appendChild(img);
+      cell.addEventListener('click', () => {
+        // Fill the empty slot with partner
+        if(!state.left){ state.left = p.other; }
+        else if(!state.right){ state.right = p.other; }
+        updateSlot('left'); updateSlot('right');
+        setActiveSlot(state.left && state.right ? 'left' : (state.left ? 'right' : 'left'));
+        state.filterByCode = null; updateFilterPill();
+        updateResult();
+        renderGrid();
+      });
+      combosGrid.appendChild(cell);
+    }
+    combosBox.classList.remove('hide');
+  }
+
+  function updateFilterPill(){
+    if(state.filterByCode){
+      const e = state.meta.data[state.filterByCode];
+      filterLabel.textContent = '仅显示可与 '+ (e?.emoji||'?') +' 组合';
+      filterPill.classList.remove('hide');
+    } else {
+      filterPill.classList.add('hide');
+    }
+  }
+
+  // ---------- Interactions ----------
+  function pickEmoji(code){
+    const which = state.activeSlot;
+    state[which] = code;
+
+    // Auto-advance
+    if(which === 'left' && !state.right) setActiveSlot('right');
+    else if(which === 'right' && !state.left) setActiveSlot('left');
+    else setActiveSlot(which === 'left' ? 'right' : 'left');
+
+    // If only one is filled now, filter picker to valid partners
+    if(state.left && !state.right){ state.filterByCode = state.left; }
+    else if(!state.left && state.right){ state.filterByCode = state.right; }
+    else { state.filterByCode = null; }
+    updateFilterPill();
+
+    updateSlot('left'); updateSlot('right');
+    updateResult();
+    renderGrid();
+  }
+
+  slotLeft.addEventListener('click', (e) => {
+    if(e.target.closest('.clear')) return;
+    setActiveSlot('left');
+  });
+  slotRight.addEventListener('click', (e) => {
+    if(e.target.closest('.clear')) return;
+    setActiveSlot('right');
+  });
+  document.querySelectorAll('.clear').forEach(b => {
+    b.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const w = b.dataset.clear;
+      state[w] = null;
+      // Keep filter if the other slot still has a value
+      if(w === 'left' && state.right) state.filterByCode = state.right;
+      else if(w === 'right' && state.left) state.filterByCode = state.left;
+      else state.filterByCode = null;
+      updateFilterPill();
+      setActiveSlot(w);
+      updateSlot(w);
+      updateResult();
+      renderGrid();
+    });
+  });
+
+  grid.addEventListener('click', (e) => {
+    const cell = e.target.closest('.cell');
+    if(!cell || cell.classList.contains('dim')) return;
+    pickEmoji(cell.dataset.code);
+  });
+
+  searchInput.addEventListener('input', () => {
+    state.filter = searchInput.value;
+    renderGrid();
+  });
+
+  filterPill.addEventListener('click', () => {
+    state.filterByCode = null;
+    updateFilterPill();
+    renderGrid();
+  });
+
+  btnRandom.addEventListener('click', () => {
+    if(!state.meta) return;
+    // Pick a random emoji that has at least one combination
+    const candidates = state.entries.filter(e => hasAnyCombination(e.code));
+    if(!candidates.length) return;
+    const a = candidates[Math.floor(Math.random()*candidates.length)].code;
+    const partners = getCombinationPartners(a);
+    if(!partners.length){ return; }
+    const b = partners[Math.floor(Math.random()*partners.length)].other;
+    state.left = a; state.right = b;
+    state.filterByCode = null; updateFilterPill();
+    setActiveSlot('left');
+    updateSlot('left'); updateSlot('right');
+    updateResult();
+    renderGrid();
+  });
+
+  btnSwap.addEventListener('click', () => {
+    if(!(state.left && state.right)) return;
+    const t = state.left; state.left = state.right; state.right = t;
+    updateSlot('left'); updateSlot('right');
+    updateResult();
+    renderGrid();
+  });
+
+  btnReset.addEventListener('click', () => {
+    state.left = null; state.right = null;
+    state.filterByCode = null;
+    updateFilterPill();
+    setActiveSlot('left');
+    updateSlot('left'); updateSlot('right');
+    updateResult();
+    renderGrid();
+    searchInput.value = ''; state.filter = '';
+    renderGrid();
+  });
+
+  btnDownload.addEventListener('click', async () => {
+    if(!state.currentUrl) return;
+    try{
+      const res = await fetch(state.currentUrl);
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'emoji-kitchen-' + state.left + '-' + state.right + '.png';
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(()=>URL.revokeObjectURL(url), 2000);
+      flashMsg('已下载','ok');
+    }catch(e){
+      // Fallback: open in new tab
+      window.open(state.currentUrl,'_blank');
+      flashMsg('浏览器阻止了直接下载，已在新标签打开','err');
+    }
+  });
+
+  btnCopy.addEventListener('click', async () => {
+    if(!state.currentUrl) return;
+    try{
+      const res = await fetch(state.currentUrl);
+      const blob = await res.blob();
+      if(navigator.clipboard && window.ClipboardItem){
+        // Some browsers require image/png; convert if needed
+        let outBlob = blob;
+        if(blob.type !== 'image/png'){
+          outBlob = await blobToPng(blob);
+        }
+        await navigator.clipboard.write([new ClipboardItem({'image/png': outBlob})]);
+        flashMsg('已复制到剪贴板','ok');
+      } else {
+        throw new Error('剪贴板 API 不可用');
+      }
+    }catch(e){
+      flashMsg('复制失败：' + (e.message||e),'err');
+    }
+  });
+
+  function blobToPng(blob){
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = () => {
+        const c = document.createElement('canvas');
+        c.width = img.naturalWidth; c.height = img.naturalHeight;
+        c.getContext('2d').drawImage(img,0,0);
+        c.toBlob(b => b ? resolve(b) : reject(new Error('toBlob failed')), 'image/png');
+      };
+      img.onerror = reject;
+      img.src = URL.createObjectURL(blob);
+    });
+  }
+
+  function flashMsg(t, cls){
+    msg.textContent = t;
+    msg.className = 'msg ' + (cls||'');
+    clearTimeout(flashMsg._t);
+    flashMsg._t = setTimeout(()=>{ msg.textContent=''; msg.className='msg'; }, 2200);
+  }
+
+  // Keyboard: / focuses search, Esc clears
+  document.addEventListener('keydown', (e) => {
+    if(e.key === '/' && document.activeElement !== searchInput){
+      e.preventDefault(); searchInput.focus(); searchInput.select();
+    } else if(e.key === 'Escape' && document.activeElement === searchInput){
+      searchInput.value=''; state.filter=''; renderGrid();
+    }
+  });
+
+  // Start
+  loadMeta();
+})();
+</script>
+
+</body>
+</html>
