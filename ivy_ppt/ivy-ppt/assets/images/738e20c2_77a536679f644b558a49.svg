@@ -1,9 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="-51.5 -51.5 1127.0 1127.0">
-  <g fill="none" stroke="black" stroke-width="45" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M 849.828,705.334 L 952.174,648.395" data-line="0"  stroke-width="45.0"/>
-    <path d="M 953.17,1003.911 L 952.174,648.395" data-line="1"  stroke-width="45.0"/>
-    <path d="M 885.938,1004.184 L 1020.0,1003.922" data-line="2"  stroke-width="45.0"/>
-    <path d="M 759.589,19.698 L 8.468,990.192" data-line="5"  stroke-width="45.0"/>
-    <path d="M 4.0,23.066 L 758.912,989.771" data-line="6"  stroke-width="45.0"/>
-  </g>
-</svg>
