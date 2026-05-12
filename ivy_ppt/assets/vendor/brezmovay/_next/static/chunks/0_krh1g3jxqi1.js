@@ -1,0 +1,21 @@
+__turbopack_load_page_chunks__("/published_mobile/[docId]", [
+  "static/chunks/0k3wmnksengur.js",
+  "static/chunks/0pf1rvjsu4v-q.js",
+  "static/chunks/0fyw-vqk1511z.js",
+  "static/chunks/0d-kdlszlotky.js",
+  "static/chunks/0f~of~6p6v7qj.js",
+  "static/chunks/07dbz_b6s3e6h.js",
+  "static/chunks/0rp0_xwxiv13g.js",
+  "static/chunks/0aae3yuv-iwl_.js",
+  "static/chunks/00afcf5fyv_7s.js",
+  "static/chunks/0eikw2_jgdfhx.js",
+  "static/chunks/10b03ay5sl896.js",
+  "static/chunks/041244f5_dnk5.js",
+  "static/chunks/04hur8320pb2j.js",
+  "static/chunks/0k7nffeb1jrc-.js",
+  "static/chunks/0v5xp~ldc6myg.js",
+  "static/chunks/0bgu2b-xkhb-r.css",
+  "static/chunks/11t_z7jeaoach.css",
+  "static/chunks/0e6eg~9q0~~nq.css",
+  "static/chunks/turbopack-0w4dqecozim9n.js"
+])
